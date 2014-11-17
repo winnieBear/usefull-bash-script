@@ -69,7 +69,7 @@ install() {
 	# check whether java or openjava exists
 	if [ -z "$debug" ] && [ -n "$(which java)" ]; then
 		if [ -n "$(java -verion 2>&1 | grep open)" ]; then
-			show_warn "OpenJDK exists, still want to install?[y|N]"
+			show_warn "OpenJDK exists, still want to install?[y/N]"
 			read still_install
 			if [[ ! "$still_install" =~ y|Y|yes|Yes ]]; then
 				show_err "Stop to install/update jdk..."
