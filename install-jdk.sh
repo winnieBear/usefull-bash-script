@@ -1,10 +1,10 @@
 #!/bin/bash
 # install/update jdk shell script
 #set -x
-debug=y
+#debug=y
 
 pkgname=""
-basepath=/opt
+basepath=/var/opt
 
 show_err() {
 echo -e "\033[1;31m$@\033[0m" 1>&2
@@ -21,7 +21,7 @@ Usage() {
 	for ((i=0; i<${#args[@]}; i++)); do
 		printf "\t%-15s%-s\n" "${args[i]}" "${desc[i]}"
 	done
-	echo ""
+	echo "Default directory is /var/opt"
 }
 
 # check whether is root user
@@ -31,7 +31,7 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 # check jdk package name and unzip it
-if [[ -n "$2" && "$2" =~ jdk.*\.tar\.gz ]]; then
+if [[ -n "$2" && "$(basename $2)" =~ jdk.*\.tar\.gz ]]; then
 	pkgname=$2
 else
 	show_err "Please use valid jdk packget, like jdk-8u20-linux-x64.tar.gz"
@@ -56,9 +56,9 @@ update_config() {
 	chmod a+x "${JAVA_HOME}/bin/javaws"
 	chown -R root:root "${JAVA_HOME}"
 	if [ -z "$debug" ]; then
-		update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME}/bin/java"
-		update-alternatives --install "/usr/bin/javac" "javac" "${JAVA_HOME}/bin/javac"
-		update-alternatives --install "/usr/bin/javaws" "javaws" "${JAVA_HOME}/bin/javaws"
+		update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME}/bin/java" 1
+		update-alternatives --install "/usr/bin/javac" "javac" "${JAVA_HOME}/bin/javac" 1
+		update-alternatives --install "/usr/bin/javaws" "javaws" "${JAVA_HOME}/bin/javaws" 1
 		update-alternatives --config java
 		update-alternatives --config javac
 		update-alternatives --config javaws
@@ -102,7 +102,7 @@ install() {
 	# Add this line to /etc/profile
 		cat << EOF >> /etc/profile
 
-# add this line if /opt/profile exists
+# add this line if /var/opt/profile exists
 [ -r "${basepath}/profile" ] && . ${basepath}/profile
 
 EOF
@@ -117,8 +117,8 @@ basepath=$basepath
 
 # add this line to the /etc/profile
 # [ -r "\${basepath}/profile" ] && . \${basepath}/profile
-# for example scriptfile in /opt
-# [ -r /opt/profile ] && . /opt/profile
+# for example scriptfile in /var/opt
+# [ -r /var/opt/profile ] && . /var/opt/profile
 
 if [ -d "\${basepath}/jdk" ]; then
 	export JAVA_HOME=\${basepath}/jdk
@@ -137,9 +137,10 @@ EOF
 }
 
 update() {
-	if [[ -z "$debug" && "${basepath}/jdk/bin/java" == "$(which java)" ]]; then
+	if [[ -z "$debug" && "$(which java)" != "" && -d "${basepath}/jdk" ]]; then
 		jdkname=$(tar -tvf $pkgname | head -1 | awk '{print $NF}')
 		tar -xvf $pkgname
+		rm -rf "${basepath}/jdk"
 		mv "${jdkname}" "${basepath}/jdk"
 
 		if [ -n "$debug" ]; then
