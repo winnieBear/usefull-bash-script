@@ -56,7 +56,11 @@ EOF
 			#chmod +r "${basepath}/sdk"
 			#chmod +x "${basepath}/sdk/tools"
 			#${basepath}/sdk/tools/android update sdk --no-ui
-			dpkg --add-architecture i386 && apt-get update && apt-get install lib32stdc++6 lib32z1 libgl1-mesa-glx
+			if [[ $(uname -a | egrep -i "debian|ubuntu") ]]; then
+				dpkg --add-architecture i386 && apt-get update && apt-get install lib32stdc++6 lib32z1 libgl1-mesa-glx
+			elif [[ $(uname -a | egrep -i "arch") ]]; then
+				#pacman -S lib32stdc++
+			fi
 		fi
 
 	fi

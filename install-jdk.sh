@@ -4,7 +4,7 @@
 #debug=y
 
 pkgname=""
-basepath=/var/opt
+basepath=/opt
 
 show_err() {
 echo -e "\033[1;31m$@\033[0m" 1>&2
@@ -55,7 +55,7 @@ update_config() {
 	chmod a+x "${JAVA_HOME}/bin/javac"
 	chmod a+x "${JAVA_HOME}/bin/javaws"
 	chown -R root:root "${JAVA_HOME}"
-	if [ -z "$debug" ]; then
+	if [[ -z "$debug" || $(uname -a | egrep -i "debian|ubuntu") ]]; then
 		update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME}/bin/java" 1
 		update-alternatives --install "/usr/bin/javac" "javac" "${JAVA_HOME}/bin/javac" 1
 		update-alternatives --install "/usr/bin/javaws" "javaws" "${JAVA_HOME}/bin/javaws" 1
