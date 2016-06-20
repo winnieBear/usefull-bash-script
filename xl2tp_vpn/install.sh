@@ -3,6 +3,8 @@ if [ `id -u` = 0 ]; then
     exit 1
 fi
 
+IP=`hostname -i | head -1 | awk '{print $1}'
+
 pacman -S ufw openswan xl2tpd ppp iptables
 
 cp 99-sysctl.conf /etc/sysctl.d/99-sysctl.conf
@@ -15,9 +17,9 @@ chmod 600 /etc/ppp/chap-secrets
 
 # ipsec
 cp ipsec.conf /etc/ipsec.conf
-sed "s/LEFT/`hostname -i`/" -i /etc/ipsec.conf
+sed "s/LEFT/$IP/" -i /etc/ipsec.conf
 cp ipsec.secrets /etc/ipsec.secrets
-sed "s/IP/`hostname -i`/;s/SECRET/`openssl rand -base64 10`/" -i /etc/ipsec.secrets
+sed "s/IP/$IP/;s/SECRET/`openssl rand -base64 10`/" -i /etc/ipsec.secrets
 chmod 600 /etc/ipsec.secrets
 
 cp options.xl2tpd /etc/ppp/options.xl2tpd
@@ -32,7 +34,7 @@ ufw allow 1701
 ufw disable && ufw enable
 
 # iptables
-iptables -t nat -A POSTROUTING -j SNAT --to-source `hostname -i` -o `ifconfig | head -1 | awk -F':' '{print $1}'`
+iptables -t nat -A POSTROUTING -j SNAT --to-source $IP -o `ifconfig | head -1 | awk -F':' '{print $1}'`
 
 # network
 for vpn in /proc/sys/net/ipv4/conf/*; do
@@ -40,4 +42,5 @@ for vpn in /proc/sys/net/ipv4/conf/*; do
   echo 0 > $vpn/send_redirects;
 done
 
-sudo systemctl restart openswan.service xl2tpd.service 
+systemctl enable openswan.service xl2tpd.service 
+systemctl restart openswan.service xl2tpd.service 
